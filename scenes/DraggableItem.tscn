@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dsvyl5a843rwj"]
+
+[ext_resource type="Script" path="res://scripts/DraggableItem.gd" id="1_w7e7s"]
+
+[node name="DraggableItem" type="TextureRect"]
+script = ExtResource("1_w7e7s")

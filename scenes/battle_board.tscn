@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://bux3j0ky6hpbs"]
+
+[ext_resource type="Script" path="res://scripts/BattleManager.gd" id="1_rv7cg"]
+[ext_resource type="PackedScene" uid="uid://bilsr7mc2j3qc" path="res://scenes/enemy_board.tscn" id="1_w25j3"]
+[ext_resource type="PackedScene" uid="uid://dwo0w247dhvi6" path="res://scenes/player_board.tscn" id="2_usxp0"]
+
+[node name="Battle_Board" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -313.0
+offset_right = -18.0
+offset_bottom = -353.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_rv7cg")
+
+[node name="Enemy_Board" parent="." instance=ExtResource("1_w25j3")]
+layout_direction = 0
+layout_mode = 2
+
+[node name="Player_Board" parent="." instance=ExtResource("2_usxp0")]
+layout_mode = 2

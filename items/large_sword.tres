@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3 uid="uid://c3s32uxh4niha"]
+
+[ext_resource type="Script" path="res://scripts/Item.gd" id="1_iu06t"]
+[ext_resource type="Texture2D" uid="uid://bsnkkdnlspptv" path="res://assets/Items/Basic_Sword.png" id="2_xn1vx"]
+
+[resource]
+script = ExtResource("1_iu06t")
+item_name = "Large Sword"
+damage_bonus = 9
+attack_speed = 5.1
+texture = ExtResource("2_xn1vx")
+size = Vector2i(3, 1)

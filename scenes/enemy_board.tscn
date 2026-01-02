@@ -1,0 +1,67 @@
+[gd_scene load_steps=8 format=3 uid="uid://bilsr7mc2j3qc"]
+
+[ext_resource type="Texture2D" uid="uid://un6gb7ywmbiu" path="res://assets/Frames/Frame_1.png" id="1_gbhry"]
+[ext_resource type="Script" uid="uid://xjs3pm52u5w" path="res://scripts/EnemyBoard.gd" id="1_s33ia"]
+[ext_resource type="Texture2D" uid="uid://bdegiwmxynxjg" path="res://assets/Hit_Points/HP_Empty.png" id="2_1bgmr"]
+[ext_resource type="Script" uid="uid://de8stdvc07m32" path="res://scripts/Item.gd" id="2_d2bug"]
+[ext_resource type="Texture2D" uid="uid://bqxcxtgynh3rh" path="res://assets/Hit_Points/HP_Full.png" id="3_6ixi7"]
+[ext_resource type="Resource" uid="uid://c3s32uxh4niha" path="res://items/large_sword.tres" id="3_avep8"]
+[ext_resource type="PackedScene" uid="uid://p8ijkaysh8q3" path="res://scenes/InventoryGrid.tscn" id="6_xtsd8"]
+
+[node name="Enemy_Board" type="PanelContainer"]
+layout_direction = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 296.0
+grow_horizontal = 2
+size_flags_vertical = 3
+script = ExtResource("1_s33ia")
+items = Array[ExtResource("2_d2bug")]([ExtResource("3_avep8")])
+item_positions = Array[Vector2i]([Vector2i(0, 0)])
+
+[node name="Enemy_Board_Elements" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Enemy_Portrait" type="VBoxContainer" parent="Enemy_Board_Elements"]
+texture_filter = 1
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="Enemy_Board_Elements/Enemy_Portrait"]
+layout_mode = 2
+text = "Enemy"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="Enemy_Board_Elements/Enemy_Portrait"]
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("1_gbhry")
+stretch_mode = 5
+
+[node name="Enemy_Hp" type="TextureProgressBar" parent="Enemy_Board_Elements/Enemy_Portrait"]
+layout_mode = 2
+value = 100.0
+nine_patch_stretch = true
+stretch_margin_left = 15
+stretch_margin_top = 15
+stretch_margin_right = 15
+stretch_margin_bottom = 15
+texture_under = ExtResource("2_1bgmr")
+texture_progress = ExtResource("3_6ixi7")
+
+[node name="Enemy_Inventory" type="CenterContainer" parent="Enemy_Board_Elements"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InventoryGrid" parent="Enemy_Board_Elements/Enemy_Inventory" instance=ExtResource("6_xtsd8")]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+
+[node name="DamageNumberSpawn" type="Marker2D" parent="Enemy_Board_Elements"]
+position = Vector2(96, 249)
+gizmo_extents = 25.0
+
+[node name="DamageNumberSpawn2" type="Marker2D" parent="Enemy_Board_Elements"]
+position = Vector2(138, 218)
+gizmo_extents = 25.0
