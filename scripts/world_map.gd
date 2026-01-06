@@ -65,9 +65,9 @@ func create_node(pos: Vector2) -> MapNode:
 	
 func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
 	if not node_a.neighbors.has(node_b):
-		node_a.neighbors.has(node_b)
+		node_a.neighbors.append(node_b)
 	if not node_b.neighbors.has(node_a):
-		node_b.neighbors.has(node_a)
+		node_b.neighbors.append(node_a)
 
 func _draw():
 	for node in all_nodes:
@@ -75,6 +75,7 @@ func _draw():
 			draw_line(node.position, neighbor.position, branch_color, line_width)
 
 func _on_node_clicked(target_node: MapNode) -> void:
+	print(target_node.neighbors)
 	if target_node == current_node:
 		print("you are already here.")
 		return

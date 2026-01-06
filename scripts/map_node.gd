@@ -26,8 +26,8 @@ func _on_map_node_pressed() -> void:
 
 func highlight(active: bool):
 	var tween = create_tween()
-	var target_scale = Vector2(1.2, 1.2) if active else Vector2(1.0, 1.0)
-	tween.tween_property(sprite, "scale", target_scale, 0.1)
+	var target_scale = Vector2(2.2, 2.2) if active else Vector2(2.0, 2.0)
+	tween.tween_property(sprite, "scale", target_scale, 0.5)
 
 func update_visuals() -> void:
 	if is_current_location:
