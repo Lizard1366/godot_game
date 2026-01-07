@@ -3,57 +3,66 @@ extends Node2D
 @export var node_scene: PackedScene
 @export var line_width: float = 4.0
 @export var branch_color: Color = Color.DIM_GRAY
+@export var node_randomness: float = 0.3
+@export var node_travel_distance: float = 150.0
+@export var pie_slice_size: float = 2.0
+@export var layers: int = 6
 
+var starting_node_layer = 0
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	randomize()
 	generate_map()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	pass
+	queue_redraw()
 
 func generate_map() -> void:
+	for n in all_nodes:
+		n.queue_free()
+	all_nodes.clear()
+	
 	var center_node = create_node(Vector2.ZERO)
 	center_node.is_current_location = true
 	center_node.is_visited = true
 	center_node.update_visuals()
 	current_node = center_node
 	
-	spawn_branches(center_node, 0, 4)
+	spawn_branches(center_node, starting_node_layer, layers, -PI, PI)
 	
 	queue_redraw()
 
-func spawn_branches(parent: MapNode, current_layer: int, max_layers: int) -> void:
+func spawn_branches(parent: MapNode, current_layer: int, max_layers: int, min_angle: float, max_angle: float) -> void:
 	if current_layer >= max_layers:
 		return
+		
 	var child_count = randi_range(1,3)
 	
-	var radius_step = 150.0
-	var current_radius = radius_step
+	var total_angle_space = max_angle - min_angle
+	var angle_per_child = total_angle_space / child_count
 	
-	var base_angle = 0.0
-	var angle_spread = PI * 2 
+	# node travel distance -> var radius_step = 150.0 magic number
 	
-	if parent.position != Vector2.ZERO:
-		base_angle = parent.position.angle()
-		angle_spread = PI / 1.5
-		
 	for i in range(child_count):
-		var angle_offset = lerp_angle(-angle_spread/2, angle_spread/2, float(i + 1) / (child_count + 1))
-		var final_angle = base_angle + angle_offset + randf_range(-0.2, 0.2)
+		var child_min = min_angle + (i * angle_per_child)
+		var child_max = child_min + angle_per_child
+		var center_of_slice = child_min + (angle_per_child / pie_slice_size)
+		
+		var max_jitter = (angle_per_child / pie_slice_size) * node_randomness
+		var final_angle = center_of_slice + randf_range(-max_jitter, max_jitter)
 		
 		var direction = Vector2.RIGHT.rotated(final_angle)
-		var spawn_pos = parent.position + (direction * current_radius)
+		var spawn_pos = parent.position + (direction * node_travel_distance)
 		
 		var child = create_node(spawn_pos)
-		
 		connect_nodes(parent, child)
 		
-		spawn_branches(child, current_layer + 1, max_layers)
+		spawn_branches(child, current_layer + 1, max_layers, child_min, child_max)
 		
 func create_node(pos: Vector2) -> MapNode:
 	var node_instance = node_scene.instantiate()
