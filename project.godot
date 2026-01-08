@@ -14,6 +14,10 @@ config/name="condolences"
 run/main_scene="uid://cdyisps0y0les"
 config/features=PackedStringArray("4.5")
 
+[autoload]
+
+GameData="*res://scripts/GameData.gd"
+
 [display]
 
 window/size/viewport_width=1920

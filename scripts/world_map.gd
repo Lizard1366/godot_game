@@ -4,6 +4,7 @@ extends Node2D
 @export var node_scene: PackedScene
 @export var line_width: float = 4.0
 @export var branch_color: Color = Color.DIM_GRAY
+@export var boss_node_color: Color = Color.WEB_MAROON
 
 @export_category("Generation Settings")
 @export var max_depth: int = 10
@@ -16,19 +17,24 @@ extends Node2D
 @export var split_chance: float = 0.3 # Chance to spawn 2 children instead of 1
 @export var termination_chance: float = 0.1 # Chance a path stops early
 
+@export_category("Encounter Rates")
+@export var encounter_types: Array[String] = ["enemy", "enemy", "enemy", "elite", "treasure", "event"]
+@export var boss_encounter_id: String = "boss"
+
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
 func _ready() -> void:
-	randomize()
+	seed(GameData.map_seed)
+	
 	if node_scene:
 		generate_map()
-	else:
-		print("Error: Please assign a MapNode scene to the node_scene export.")
+		
+	restore_map_state()
 
 #delta is the time that passes between frames 
 func _process(_delta: float) -> void:
-	queue_redraw()
+	pass
 
 func generate_map() -> void:
 	for n in all_nodes:
@@ -50,13 +56,31 @@ func generate_map() -> void:
 	
 	queue_redraw()
 
+func restore_map_state() ->void:
+	for i in range(all_nodes.size()):
+		var node = all_nodes[i]
+		
+		node.node_index = i
+		if i in GameData.visited_node_indicies:
+			node.is_visited = true
+		
+		if GameData.visited_node_indicies.size() > 0:
+			if i == GameData.visited_node_indicies.back():
+				current_node = node 
+				node.is_current_location = true
+			else:
+				node.is_current_location = false
+		elif i == 0:
+			current_node = node
+			node.is_current_location = true
+		node.update_visuals()
 # Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
 	if current_depth >= max_depth:
 		return
 		
 	# Determine how many children this node will have
-	var child_count = 1
+	var child_count = 2
 	
 	# Random chance to split into a fork
 	if randf() < split_chance:
@@ -148,11 +172,21 @@ func link_nearby_neighbors(node: MapNode, parent_exception: MapNode) -> void:
 			if connections_made >= 2:
 				break
 
-func create_node(pos: Vector2) -> MapNode:
+func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 	var node_instance = node_scene.instantiate()
 	node_instance.position = pos
+	
+	if is_boss:
+		node_instance.encounter_id = boss_encounter_id
+		node_instance.scale_normal = Vector2(3.0, 3.0)
+		node_instance.scale_active = Vector2(3.2, 3.2)
+		node_instance.color_default = boss_node_color
+	else:
+		node_instance.encounter_id = encounter_types.pick_random()
+			
 	add_child(node_instance)
 	node_instance.node_clicked.connect(_on_node_clicked)
+	
 	all_nodes.append(node_instance)
 	return node_instance
 	
@@ -179,7 +213,6 @@ func _draw():
 				drawn_pairs[pair_key] = true
 
 func _on_node_clicked(target_node: MapNode) -> void:
-	print(target_node.neighbors)
 	if target_node == current_node:
 		print("you are already here.")
 		return
@@ -189,13 +222,14 @@ func _on_node_clicked(target_node: MapNode) -> void:
 		current_node.update_visuals()
 		
 		current_node = target_node
-		current_node.is_current_location = true
-		current_node.is_visited = true
-		current_node.update_visuals()
+		current_node.confirm_visited()
+		
+		queue_redraw()
 		
 		start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
 	else:
 		print("Too Far Away!")
+	queue_redraw()
 
 func start_encounter(id: String):
 	print("start encounter: ", id)
