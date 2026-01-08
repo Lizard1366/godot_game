@@ -1,0 +1,109 @@
+[gd_scene load_steps=8 format=3 uid="uid://cdyisps0y0les"]
+
+[ext_resource type="Script" uid="uid://cylvxkkql3a2q" path="res://scripts/main_menu.gd" id="1_ekxnf"]
+[ext_resource type="Texture2D" uid="uid://bhy4tmy0ymwlp" path="res://assets/Background/Components/Leaves/lpc_leaf_recolors_autumn_1.png" id="2_bqqt6"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_7vrkn"]
+particles_animation = true
+particles_anim_h_frames = 4
+particles_anim_v_frames = 1
+particles_anim_loop = true
+
+[sub_resource type="Curve" id="Curve_fu7sn"]
+_limits = [-200.0, 200.0, 0.0, 1.0]
+_data = [Vector2(0, 0), 0.0, 387.69232, 0, 1, Vector2(0.515873, 200), 0.0, 0.0, 0, 0, Vector2(1, 0), -413.11475, 0.0, 1, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_jix8l"]
+curve = SubResource("Curve_fu7sn")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_glbon"]
+particle_flag_disable_z = true
+emission_shape_offset = Vector3(-208, 0, 0)
+emission_shape_scale = Vector3(1, 22, 1)
+emission_shape = 3
+emission_box_extents = Vector3(660, 1, 1)
+angle_min = 1.0728835e-05
+angle_max = 1.0728835e-05
+inherit_velocity_ratio = 0.262
+velocity_pivot = Vector3(1, 0, 0)
+direction = Vector3(0, 0, 0)
+spread = 46.277
+gravity = Vector3(130, 100, 0)
+linear_accel_min = -79.31
+linear_accel_max = 99.99999
+linear_accel_curve = SubResource("CurveTexture_jix8l")
+anim_speed_max = 0.79999995
+anim_offset_max = 1.0
+turbulence_enabled = true
+turbulence_noise_strength = 6.0
+turbulence_noise_scale = 6.0
+turbulence_noise_speed_random = 2.0
+turbulence_initial_displacement_min = 1.490116e-06
+turbulence_initial_displacement_max = 1.490116e-06
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vue75"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 5
+shadow_offset = Vector2(0, 3.41)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ekxnf")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_7vrkn")
+position = Vector2(350, -25)
+scale = Vector2(1.1, 1.1)
+amount = 60
+texture = ExtResource("2_bqqt6")
+lifetime = 15.0
+interp_to_end = 1.0
+preprocess = 1.0
+randomness = 1.0
+visibility_rect = Rect2(-100, -1, 1080, 648)
+local_coords = true
+process_material = SubResource("ParticleProcessMaterial_glbon")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -183.5
+offset_top = -71.75
+offset_right = 183.5
+offset_bottom = 71.75
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_vue75")
+text = "Start Game"
+
+[node name="Button2" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_vue75")
+text = "Quit Game"
+
+[connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_button_start_pressed"]
+[connection signal="pressed" from="VBoxContainer/Button2" to="." method="_on_button_quit_pressed"]
