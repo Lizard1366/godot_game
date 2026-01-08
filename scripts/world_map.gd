@@ -19,7 +19,6 @@ extends Node2D
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	randomize()
 	if node_scene:
@@ -27,25 +26,22 @@ func _ready() -> void:
 	else:
 		print("Error: Please assign a MapNode scene to the node_scene export.")
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+#delta is the time that passes between frames 
 func _process(_delta: float) -> void:
 	queue_redraw()
 
 func generate_map() -> void:
-	# 1. Cleanup
 	for n in all_nodes:
 		n.queue_free()
 	all_nodes.clear()
 	
-	# 2. Create Start
+	#center node
 	var center_node = create_node(Vector2.ZERO)
 	center_node.is_current_location = true
 	center_node.is_visited = true
 	center_node.update_visuals()
 	current_node = center_node
 	
-	# 3. Start the organic growth
-	# We start with X branches coming out of the center to ensure 360 coverage
 	var initial_branches = randi_range(3, 5)
 	for i in range(initial_branches):
 		var angle = (TAU / initial_branches) * i
@@ -54,7 +50,7 @@ func generate_map() -> void:
 	
 	queue_redraw()
 
-# Recursive function to walk paths outward
+# Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
 	if current_depth >= max_depth:
 		return
