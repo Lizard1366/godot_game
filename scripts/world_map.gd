@@ -1,69 +1,157 @@
 extends Node2D
 
+@export_category("Visuals")
 @export var node_scene: PackedScene
 @export var line_width: float = 4.0
 @export var branch_color: Color = Color.DIM_GRAY
-@export var node_randomness: float = 0.3
-@export var node_travel_distance: float = 150.0
-@export var pie_slice_size: float = 2.0
-@export var layers: int = 6
 
-var starting_node_layer = 0
+@export_category("Generation Settings")
+@export var max_depth: int = 10
+@export var min_node_dist: float = 80.0 # Minimum space between any two nodes
+@export var path_length: float = 120.0 # Distance from parent to child
+@export var direction_jitter: float = 0.8 # How much the path creates curves (in radians)
+@export var neighbor_connect_range: float = 160.0 # Distance to look for cross-connections (loops)
+
+@export_category("Branching Logic")
+@export var split_chance: float = 0.3 # Chance to spawn 2 children instead of 1
+@export var termination_chance: float = 0.1 # Chance a path stops early
+
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	randomize()
-	generate_map()
-
+	if node_scene:
+		generate_map()
+	else:
+		print("Error: Please assign a MapNode scene to the node_scene export.")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	queue_redraw()
 
 func generate_map() -> void:
+	# 1. Cleanup
 	for n in all_nodes:
 		n.queue_free()
 	all_nodes.clear()
 	
+	# 2. Create Start
 	var center_node = create_node(Vector2.ZERO)
 	center_node.is_current_location = true
 	center_node.is_visited = true
 	center_node.update_visuals()
 	current_node = center_node
 	
-	spawn_branches(center_node, starting_node_layer, layers, -PI, PI)
+	# 3. Start the organic growth
+	# We start with X branches coming out of the center to ensure 360 coverage
+	var initial_branches = randi_range(3, 5)
+	for i in range(initial_branches):
+		var angle = (TAU / initial_branches) * i
+		var start_dir = Vector2.RIGHT.rotated(angle)
+		grow_organic_branch(center_node, start_dir, 0)
 	
 	queue_redraw()
 
-func spawn_branches(parent: MapNode, current_layer: int, max_layers: int, min_angle: float, max_angle: float) -> void:
-	if current_layer >= max_layers:
+# Recursive function to walk paths outward
+func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
+	if current_depth >= max_depth:
 		return
 		
-	var child_count = randi_range(1,3)
+	# Determine how many children this node will have
+	var child_count = 1
 	
-	var total_angle_space = max_angle - min_angle
-	var angle_per_child = total_angle_space / child_count
+	# Random chance to split into a fork
+	if randf() < split_chance:
+		child_count = 2
 	
-	# node travel distance -> var radius_step = 150.0 magic number
-	
+	# Random chance to die early (unless we are very close to start)
+	if current_depth > 2 and randf() < termination_chance:
+		child_count = 0
+		
 	for i in range(child_count):
-		var child_min = min_angle + (i * angle_per_child)
-		var child_max = child_min + angle_per_child
-		var center_of_slice = child_min + (angle_per_child / pie_slice_size)
+		# Calculate a new direction based on previous direction + randomness
+		# If splitting (2 children), push them apart slightly
+		var angle_offset = randf_range(-direction_jitter, direction_jitter)
 		
-		var max_jitter = (angle_per_child / pie_slice_size) * node_randomness
-		var final_angle = center_of_slice + randf_range(-max_jitter, max_jitter)
+		if child_count == 2:
+			# Force forks to diverge visually
+			angle_offset += 0.5 if i == 0 else -0.5
+			
+		var new_dir = direction.rotated(angle_offset).normalized()
+		var candidate_pos = parent.position + (new_dir * path_length)
 		
-		var direction = Vector2.RIGHT.rotated(final_angle)
-		var spawn_pos = parent.position + (direction * node_travel_distance)
+		# Collision Check: Try to find a valid spot
+		# If the candidate spot is too crowded, we try to rotate it a bit to fit
+		var valid_pos = find_valid_position(candidate_pos, parent.position)
 		
-		var child = create_node(spawn_pos)
-		connect_nodes(parent, child)
+		if valid_pos != Vector2.INF:
+			var child = create_node(valid_pos)
+			
+			# Logic Link (Parent-Child)
+			connect_nodes(parent, child)
+			
+			# Visual Logic: Add nearby links (The PoE Web Effect)
+			# Look for existing nodes that are close but not our direct parent
+			link_nearby_neighbors(child, parent)
+			
+			# Continue the path
+			grow_organic_branch(child, new_dir, current_depth + 1)
+
+# Tries to find a valid spot near the target. Returns Vector2.INF if failed.
+func find_valid_position(target: Vector2, origin: Vector2) -> Vector2:
+	# If the perfect spot works, take it
+	if is_position_free(target):
+		return target
 		
-		spawn_branches(child, current_layer + 1, max_layers, child_min, child_max)
+	# If not, try rotating the vector around the origin slightly to find a gap
+	var base_vec = target - origin
+	var length = base_vec.length()
+	var attempts = 8
+	var angle_step = PI / 4.0 # 45 degrees
+	
+	# Alternate checking left and right
+	for i in range(1, attempts):
+		var check_angle = angle_step * ceil(float(i)/2.0)
+		if i % 2 != 0: check_angle *= -1 # Flip side
 		
+		var rotated_vec = base_vec.rotated(check_angle)
+		var new_target = origin + rotated_vec
+		
+		if is_position_free(new_target):
+			return new_target
+			
+	return Vector2.INF
+
+# Checks if a position is far enough away from ALL other existing nodes
+func is_position_free(pos: Vector2) -> bool:
+	for node in all_nodes:
+		if pos.distance_to(node.position) < min_node_dist:
+			return false
+	return true
+
+# Looks for nodes within range to create cross-connections (loops)
+func link_nearby_neighbors(node: MapNode, parent_exception: MapNode) -> void:
+	var connections_made = 0
+	
+	for other in all_nodes:
+		if other == node or other == parent_exception:
+			continue
+			
+		var dist = node.position.distance_to(other.position)
+		
+		# If close enough, connect
+		if dist < neighbor_connect_range:
+			# Visual check: Don't cross lines if possible? 
+			# For now, simple distance check works well for "Webs"
+			connect_nodes(node, other)
+			connections_made += 1
+			
+			# Limit extra connections so it doesn't become a complete mess
+			if connections_made >= 2:
+				break
+
 func create_node(pos: Vector2) -> MapNode:
 	var node_instance = node_scene.instantiate()
 	node_instance.position = pos
@@ -79,9 +167,20 @@ func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
 		node_b.neighbors.append(node_a)
 
 func _draw():
+	# Draw lines between all connected neighbors
+	# To avoid drawing lines twice, we can use a simpler approach or a set
+	var drawn_pairs = {} 
+	
 	for node in all_nodes:
 		for neighbor in node.neighbors:
-			draw_line(node.position, neighbor.position, branch_color, line_width)
+			# Create a unique ID for the pair to prevent double drawing
+			var id1 = node.get_instance_id()
+			var id2 = neighbor.get_instance_id()
+			var pair_key = str(min(id1, id2)) + "-" + str(max(id1, id2))
+			
+			if not drawn_pairs.has(pair_key):
+				draw_line(node.position, neighbor.position, branch_color, line_width)
+				drawn_pairs[pair_key] = true
 
 func _on_node_clicked(target_node: MapNode) -> void:
 	print(target_node.neighbors)
@@ -98,7 +197,7 @@ func _on_node_clicked(target_node: MapNode) -> void:
 		current_node.is_visited = true
 		current_node.update_visuals()
 		
-		start_encounter(current_node.encounter_id)
+		start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
 	else:
 		print("Too Far Away!")
 

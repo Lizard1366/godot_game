@@ -1,3 +1,5 @@
+# Map Node GD Script
+
 extends Node2D
 class_name MapNode
 
