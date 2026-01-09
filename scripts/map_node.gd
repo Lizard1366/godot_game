@@ -21,7 +21,7 @@ var is_current_location: bool = false
 var is_visited: bool = false
 var is_available_node: bool = false
 var neighbors: Array[MapNode] = []
-var node_index: int = -1
+var node_index: int = 0
 
 @onready var sprite = $Sprite2D
 @onready var button = $Button
@@ -53,11 +53,11 @@ func highlight(active: bool):
 
 func update_visuals() -> void:
 	if is_current_location:
-		sprite.modulate = color_current
+		button.modulate = color_current
 	elif is_visited:
-		sprite.modulate = color_visited
+		button.modulate = color_visited
 	elif is_available_node and not is_visited:
-		sprite.modulate = color_available
+		button.modulate = color_available
 	else:
-		sprite.modulate = color_default
+		button.modulate = color_default
 	#print("update Visuals " + str(neighbors))

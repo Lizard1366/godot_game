@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 			if weapon_timers[i] >= items[i].attack_speed:
 				weapon_timers[i] = 0.0
 				var damage = strength + items[i].damage_bonus
-				print("Enemy attacks with %s for %d damage!" % [items[i].item_name, damage])
+				#print("Enemy attacks with %s for %d damage!" % [items[i].item_name, damage])
 				if opponent:
 					opponent.take_damage(damage)
 

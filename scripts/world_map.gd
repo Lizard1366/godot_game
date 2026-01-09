@@ -1,5 +1,7 @@
 extends Node2D
 
+signal encounter_started(encounter_id: String, node_index: int)
+
 @export_category("Visuals")
 @export var node_scene: PackedScene
 @export var line_width: float = 4.0
@@ -25,16 +27,14 @@ var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
 func _ready() -> void:
+	if GameData.map_seed == 0 or GameData.map_seed == null:
+		randomize()
+		GameData.map_seed = randi()
+		
 	seed(GameData.map_seed)
-	
 	if node_scene:
 		generate_map()
-		
 	restore_map_state()
-
-#delta is the time that passes between frames 
-func _process(_delta: float) -> void:
-	pass
 
 func generate_map() -> void:
 	for n in all_nodes:
@@ -48,25 +48,33 @@ func generate_map() -> void:
 	center_node.update_visuals()
 	current_node = center_node
 	
+	if center_node.node_index not in GameData.completed_node_indicies:
+		GameData.completed_node_indicies.append(center_node.node_index)
+	
 	var initial_branches = randi_range(3, 5)
 	for i in range(initial_branches):
 		var angle = (TAU / initial_branches) * i
 		var start_dir = Vector2.RIGHT.rotated(angle)
 		grow_organic_branch(center_node, start_dir, 0)
 	
-	for neighbor in center_node.neighbors:
-		if neighbor.node_index not in GameData.visited_node_indicies:
-			neighbor.is_available_node = true
-			neighbor.update_visuals()
-			neighbor.confirm_valid()
+	mark_available_nodes(center_node)
+	#for neighbor in center_node.neighbors:
+	#	if neighbor.node_index not in GameData.visited_node_indicies:
+	#		neighbor.is_available_node = true
+	#		neighbor.update_visuals()
+	#		neighbor.confirm_valid()
 			
 	queue_redraw()
 
 func restore_map_state() ->void:
 	for i in range(all_nodes.size()):
 		var node = all_nodes[i]
-		
 		node.node_index = i
+		
+		node.is_visited = false
+		node.is_current_location = false
+		node.is_available_node = false
+		
 		if i in GameData.visited_node_indicies:
 			node.is_visited = true
 		
@@ -74,13 +82,16 @@ func restore_map_state() ->void:
 			if i == GameData.visited_node_indicies.back():
 				current_node = node 
 				node.is_current_location = true
-			else:
-				node.is_current_location = false
+				mark_available_nodes(node)
 		elif i == 0:
 			current_node = node
 			node.is_current_location = true
+			mark_available_nodes(node)
+			
+		node.button.text = str(node.node_index)
 		node.update_visuals()
-		print('restore map')
+		
+	print("Restored" + str(GameData.completed_node_indicies))
 
 # Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
@@ -116,7 +127,7 @@ func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int
 		
 		if valid_pos != Vector2.INF:
 			var child = create_node(valid_pos)
-			
+
 			# Logic Link (Parent-Child)
 			connect_nodes(parent, child)
 			
@@ -196,6 +207,8 @@ func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 	node_instance.node_clicked.connect(_on_node_clicked)
 	
 	all_nodes.append(node_instance)
+	node_instance.node_index = all_nodes.size()
+	node_instance.button.text = str(all_nodes.size())
 	return node_instance
 	
 func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
@@ -222,58 +235,45 @@ func _draw():
 
 func _on_node_clicked(target_node: MapNode) -> void:
 	if target_node == current_node:
-		print("you are already here.")
-		print(GameData.completed_node_indicies)
-		print(GameData.combat_node)
-		print(GameData.combat_success)
 		return
+	
+	var can_travel = false
+		
 	if target_node in current_node.neighbors:
-		print("Traveling to node...")
-		current_node.is_current_location = false
-		current_node.update_visuals()
-		
-		current_node = target_node
-		current_node.confirm_visited()
-		
-		queue_redraw()
-		print(GameData.visited_node_indicies)
-		start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
+		can_travel = true
 	else:
 		for neighbor in target_node.neighbors:
 			if neighbor.node_index in GameData.visited_node_indicies:
-				print("traveling to node...")
-				current_node.is_current_location = false
-				current_node.update_visuals()
-				
-				current_node = target_node
-				current_node.confirm_visited()
-				queue_redraw()
-				start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
+				can_travel = true
 				break
-			else:
-				print(neighbor.node_index)
+	if not can_travel:
+		#TODO Display message to user?
+		return
+	
+	current_node.is_current_location = false
+	current_node.update_visuals()
+	
+	current_node = target_node
+	current_node.confirm_visited()
+	
+	if target_node.node_index not in GameData.visited_node_indicies:
+		GameData.visited_node_indicies.append(target_node.node_index)
+	
+	if current_node.node_index in GameData.completed_node_indicies:
+		print("node already cleared.")
+		mark_available_nodes(current_node)
+	else:
+		trigger_encounter(current_node)
+		
 	queue_redraw()
 
-func start_encounter(id: String):
-	#Send to Battle Manager?
-	GameData.encounter_type = current_node.encounter_id
-	GameData.combat_node = current_node
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
-	#print("start encounter: ", id)
-	#var success = true
-	#if randi_range(0, 100) <= 25:
-	#	success = false
-	#if not success:
-	#	print('failed')
-	#else:
-	#	print('success')
-	#	mark_available_nodes(current_node)
+func trigger_encounter(node: MapNode):
+	emit_signal("encounter_started", node.encounter_id, node.node_index)
 
-func mark_available_nodes(current_node: MapNode):
-	for neighbor in current_node.neighbors:
+func mark_available_nodes(center: MapNode):
+	for neighbor in center.neighbors:
 		if neighbor.node_index not in GameData.visited_node_indicies:
 			neighbor.is_available_node = true
 			neighbor.update_visuals()
 			neighbor.confirm_valid()
-			queue_redraw()
-	
+	queue_redraw()

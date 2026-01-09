@@ -7,7 +7,7 @@ var visited_node_indicies: Array[int] = []
 var valid_node_indicies: Array[int] = []
 var completed_node_indicies: Array[int] = []
 
-var combat_node: MapNode
+var combat_node: int = 0
 var encounter_type: String
 var combat_success: bool = false
 
@@ -30,10 +30,10 @@ func register_valid(node_index: int):
 	else:
 		valid_node_indicies.erase(node_index)
 		
-func register_completed_node(node: MapNode):
-	print("Register complete " + str(node.node_index))
-	if not node.node_index in completed_node_indicies and combat_success:
-		completed_node_indicies.append(node.node_index)
+func register_completed_node():
+	print("Register complete " + str(combat_node))
+	if not combat_node in completed_node_indicies and combat_success:
+		completed_node_indicies.append(combat_node)
 
 func reset_run():
 	randomize()

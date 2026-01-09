@@ -1,6 +1,7 @@
 # BattleManager.gd
-
 extends VBoxContainer
+
+signal battle_completed(victory: bool)
 
 # --- Preloads ---
 var draggable_item_scene = preload("res://scenes/DraggableItem.tscn")
@@ -8,7 +9,9 @@ var draggable_item_scene = preload("res://scenes/DraggableItem.tscn")
 # --- Node References ---
 @onready var player_board = $Player_Board
 @onready var enemy_board = $Enemy_Board
-@onready var start_button = get_node("/root/Main/CanvasLayer/StartButton")
+
+@export var start_button = Button
+#get_node("/root/Main/CanvasLayer/StartButton")
 
 # --- Drag & Drop State ---
 var is_dragging: bool = false
@@ -20,14 +23,29 @@ var dragged_item_visual = null
 var battle_over: bool = false
 
 func _ready() -> void:
-	if start_button:
-		start_button.pressed.connect(_on_start_button_pressed)
+	_setup_start_button()
 	
 	player_board.defeated.connect(_on_player_defeated)
 	enemy_board.defeated.connect(_on_enemy_defeated)
 	
 	player_board.inventory_grid.item_drag_started.connect(_on_item_drag_started)
 	enemy_board.inventory_grid.item_drag_started.connect(_on_item_drag_started)
+
+func _setup_start_button() -> void:
+	if not start_button:
+		if has_node("%StartButton%"):
+			start_button = get_node("%StartButton%")
+		elif has_node("../CanvasLayer/StartButton"):
+			start_button = get_node("../CanvasLayer/StartButton")
+		elif get_parent().has_node("CanvasLayer/StartButton"):
+			start_button = get_parent().get_node("CanvasLater/StartButton")
+	if start_button:
+		var button_signal = Signal(start_button, "pressed")
+		
+		if not button_signal.is_connected(_on_start_button_pressed):
+			button_signal.connect(_on_start_button_pressed)
+	else:
+		push_warning("BattleManager: StartButton not found! Please assign it in the Inspector.")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_dragging and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.is_pressed():
@@ -85,8 +103,7 @@ func _on_player_defeated() -> void:
 	print("DEFEAT! The player has been defeated.")
 	player_board.stop_battle()
 	enemy_board.stop_battle()
-
-	get_tree().change_scene_to_file("res://scenes/world_map.tscn")
+	update_node_status(false)
 
 func _on_enemy_defeated() -> void:
 	if battle_over: return
@@ -94,8 +111,12 @@ func _on_enemy_defeated() -> void:
 	print("VICTORY! The player has won.")
 	player_board.stop_battle()
 	enemy_board.stop_battle()
+	update_node_status(true)
+
+func update_node_status(complete: bool):
+	print(GameData.map_seed)
 	
-	GameData.combat_success = true
-	GameData.register_completed_node(GameData.combat_node)
-	
-	get_tree().change_scene_to_file("res://scenes/world_map.tscn")
+	if(complete):
+		GameData.completed_node_indicies.append(GameData.combat_node)
+	emit_signal("battle_completed", complete)
+	#get_tree().change_scene_to_file("res://scenes/world_map.tscn")

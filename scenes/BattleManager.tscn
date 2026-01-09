@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://dxp1b4m4kbykp"]
 
-[ext_resource type="PackedScene" uid="uid://bux3j0ky6hpbs" path="res://scenes/battle_board.tscn" id="1_2kynv"]
+[ext_resource type="PackedScene" uid="uid://bux3j0ky6hpbs" path="res://scenes/battle_board.tscn" id="1_enhqc"]
 
-[node name="Main" type="Control"]
+[node name="BattleManager" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,12 +12,13 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Battle_Board" parent="." instance=ExtResource("1_2kynv")]
+[node name="Battle_Board" parent="." node_paths=PackedStringArray("start_button") instance=ExtResource("1_enhqc")]
 layout_mode = 1
 anchors_preset = -1
 offset_left = 1.0
 offset_top = 4.0
 offset_bottom = 0.0
+start_button = NodePath("../CanvasLayer/StartButton")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
