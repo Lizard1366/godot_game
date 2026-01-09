@@ -86,9 +86,16 @@ func _on_player_defeated() -> void:
 	player_board.stop_battle()
 	enemy_board.stop_battle()
 
+	get_tree().change_scene_to_file("res://scenes/world_map.tscn")
+
 func _on_enemy_defeated() -> void:
 	if battle_over: return
 	battle_over = true
 	print("VICTORY! The player has won.")
 	player_board.stop_battle()
 	enemy_board.stop_battle()
+	
+	GameData.combat_success = true
+	GameData.register_completed_node(GameData.combat_node)
+	
+	get_tree().change_scene_to_file("res://scenes/world_map.tscn")

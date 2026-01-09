@@ -4,6 +4,12 @@ var map_seed: int = 0
 var map_generated: bool = false
 
 var visited_node_indicies: Array[int] = []
+var valid_node_indicies: Array[int] = []
+var completed_node_indicies: Array[int] = []
+
+var combat_node: MapNode
+var encounter_type: String
+var combat_success: bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -17,6 +23,17 @@ func _process(delta: float) -> void:
 func register_visit(node_index: int):
 	if not node_index in visited_node_indicies:
 		visited_node_indicies.append(node_index)
+
+func register_valid(node_index: int):
+	if not node_index in valid_node_indicies:
+		valid_node_indicies.append(node_index)
+	else:
+		valid_node_indicies.erase(node_index)
+		
+func register_completed_node(node: MapNode):
+	print("Register complete " + str(node.node_index))
+	if not node.node_index in completed_node_indicies and combat_success:
+		completed_node_indicies.append(node.node_index)
 
 func reset_run():
 	randomize()

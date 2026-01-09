@@ -54,6 +54,12 @@ func generate_map() -> void:
 		var start_dir = Vector2.RIGHT.rotated(angle)
 		grow_organic_branch(center_node, start_dir, 0)
 	
+	for neighbor in center_node.neighbors:
+		if neighbor.node_index not in GameData.visited_node_indicies:
+			neighbor.is_available_node = true
+			neighbor.update_visuals()
+			neighbor.confirm_valid()
+			
 	queue_redraw()
 
 func restore_map_state() ->void:
@@ -74,6 +80,8 @@ func restore_map_state() ->void:
 			current_node = node
 			node.is_current_location = true
 		node.update_visuals()
+		print('restore map')
+
 # Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
 	if current_depth >= max_depth:
@@ -215,6 +223,9 @@ func _draw():
 func _on_node_clicked(target_node: MapNode) -> void:
 	if target_node == current_node:
 		print("you are already here.")
+		print(GameData.completed_node_indicies)
+		print(GameData.combat_node)
+		print(GameData.combat_success)
 		return
 	if target_node in current_node.neighbors:
 		print("Traveling to node...")
@@ -225,11 +236,44 @@ func _on_node_clicked(target_node: MapNode) -> void:
 		current_node.confirm_visited()
 		
 		queue_redraw()
-		
+		print(GameData.visited_node_indicies)
 		start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
 	else:
-		print("Too Far Away!")
+		for neighbor in target_node.neighbors:
+			if neighbor.node_index in GameData.visited_node_indicies:
+				print("traveling to node...")
+				current_node.is_current_location = false
+				current_node.update_visuals()
+				
+				current_node = target_node
+				current_node.confirm_visited()
+				queue_redraw()
+				start_encounter(current_node.encounter_id if "encounter_id" in current_node else "random")
+				break
+			else:
+				print(neighbor.node_index)
 	queue_redraw()
 
 func start_encounter(id: String):
-	print("start encounter: ", id)
+	#Send to Battle Manager?
+	GameData.encounter_type = current_node.encounter_id
+	GameData.combat_node = current_node
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	#print("start encounter: ", id)
+	#var success = true
+	#if randi_range(0, 100) <= 25:
+	#	success = false
+	#if not success:
+	#	print('failed')
+	#else:
+	#	print('success')
+	#	mark_available_nodes(current_node)
+
+func mark_available_nodes(current_node: MapNode):
+	for neighbor in current_node.neighbors:
+		if neighbor.node_index not in GameData.visited_node_indicies:
+			neighbor.is_available_node = true
+			neighbor.update_visuals()
+			neighbor.confirm_valid()
+			queue_redraw()
+	

@@ -10,6 +10,7 @@ signal node_clicked(node: MapNode)
 @export var color_current: Color = Color.GREEN
 @export var color_visited: Color = Color.GRAY
 @export var color_default: Color = Color.WHITE
+@export var color_available: Color = Color.ALICE_BLUE
 
 @export_group("Animation")
 @export var scale_active: Vector2 = Vector2(2.2, 2.2)
@@ -18,6 +19,7 @@ signal node_clicked(node: MapNode)
 
 var is_current_location: bool = false
 var is_visited: bool = false
+var is_available_node: bool = false
 var neighbors: Array[MapNode] = []
 var node_index: int = -1
 
@@ -38,6 +40,12 @@ func confirm_visited():
 	GameData.register_visit(node_index)
 	update_visuals()
 
+func confirm_valid():
+	is_available_node = true
+	is_current_location = false
+	GameData.register_valid(node_index)
+	update_visuals()
+
 func highlight(active: bool):
 	var tween = create_tween()
 	var target_scale = scale_active if active else scale_normal
@@ -48,5 +56,8 @@ func update_visuals() -> void:
 		sprite.modulate = color_current
 	elif is_visited:
 		sprite.modulate = color_visited
+	elif is_available_node and not is_visited:
+		sprite.modulate = color_available
 	else:
 		sprite.modulate = color_default
+	#print("update Visuals " + str(neighbors))
