@@ -67,7 +67,14 @@ func _on_item_drag_started(item_data: Dictionary, grid_node) -> void:
 	dragged_item_visual = draggable_item_scene.instantiate()
 	dragged_item_visual.texture = dragged_item_data.get("item").texture
 	dragged_item_visual.size = dragged_item_data.get("item").size * source_board.inventory_grid.cell_size
-	get_tree().root.add_child(dragged_item_visual)
+	
+	add_child(dragged_item_visual)
+	dragged_item_visual.top_level = true
+	dragged_item_visual.global_position = get_global_mouse_position() - (dragged_item_visual.size / 2)
+
+func _process(_delta: float) -> void:
+	if is_dragging and dragged_item_visual:
+		dragged_item_visual.global_position = get_global_mouse_position() - (dragged_item_visual.size / 2)
 
 func _on_item_dropped(global_mouse_pos: Vector2) -> void:
 	var target_board = null

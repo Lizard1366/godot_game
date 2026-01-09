@@ -5,6 +5,7 @@ extends Node2D
 
 var map_instance: Node2D
 var current_battle_instance: Node = null
+var battle_ui_layer: CanvasLayer = null
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -31,13 +32,22 @@ func _on_map_encounter_started(encounter_id: String, node_index: int) -> void:
 	start_battle()
 
 func start_battle():
+	battle_ui_layer = CanvasLayer.new()
+	battle_ui_layer.layer = 10
+	add_child(battle_ui_layer)
+	
 	current_battle_instance = battle_scene_packed.instantiate()
-	add_child(current_battle_instance)
+	battle_ui_layer.add_child(current_battle_instance)
+	
+	if current_battle_instance is Control:
+		current_battle_instance.set_anchors_preset(Control.PRESET_CENTER)
+		current_battle_instance.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		current_battle_instance.grow_vertical = Control.GROW_DIRECTION_BOTH
 	
 	if current_battle_instance.has_signal("battle_completed"):
 		current_battle_instance.battle_completed.connect(_on_battle_completed)
 	else:
-		var manager =current_battle_instance.find_child("Battle_Board", true, false)
+		var manager =current_battle_instance.find_child("BattleManager", true, false)
 		if manager and manager.has_signal("battle_completed"):
 			manager.battle_completed.connect(_on_battle_completed)
 		else:
@@ -45,9 +55,13 @@ func start_battle():
 
 func _on_battle_completed(victory: bool):
 	print("Controller: Battle finished: Victory: ", victory)
-	current_battle_instance.queue_free()
-	current_battle_instance = null
 	
+	if current_battle_instance:
+		current_battle_instance.queue_free()
+	if battle_ui_layer:
+		battle_ui_layer.queue_free()
+		battle_ui_layer = null
+		
 	map_instance.visible = true
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
 	

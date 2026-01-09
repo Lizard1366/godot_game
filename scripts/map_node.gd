@@ -43,6 +43,7 @@ func confirm_visited():
 func confirm_valid():
 	is_available_node = true
 	is_current_location = false
+	print('valid')
 	GameData.register_valid(node_index)
 	update_visuals()
 

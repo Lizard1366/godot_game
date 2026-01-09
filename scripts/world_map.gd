@@ -277,3 +277,4 @@ func mark_available_nodes(center: MapNode):
 			neighbor.update_visuals()
 			neighbor.confirm_valid()
 	queue_redraw()
+	print(GameData.valid_node_indicies)

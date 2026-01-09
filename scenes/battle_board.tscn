@@ -4,17 +4,20 @@
 [ext_resource type="PackedScene" uid="uid://bilsr7mc2j3qc" path="res://scenes/enemy_board.tscn" id="1_w25j3"]
 [ext_resource type="PackedScene" uid="uid://dwo0w247dhvi6" path="res://scenes/player_board.tscn" id="2_usxp0"]
 
-[node name="Battle_Board" type="VBoxContainer"]
+[node name="Battle_Board" type="VBoxContainer" node_paths=PackedStringArray("start_button")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -331.0
-offset_bottom = -335.0
+offset_left = -2.0
+offset_top = 4.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_rv7cg")
+start_button = NodePath("CanvasLayer/StartButton")
+metadata/_edit_use_anchors_ = true
 
 [node name="Enemy_Board" parent="." instance=ExtResource("1_w25j3")]
 layout_direction = 0
@@ -22,3 +25,15 @@ layout_mode = 2
 
 [node name="Player_Board" parent="." instance=ExtResource("2_usxp0")]
 layout_mode = 2
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="StartButton" type="Button" parent="CanvasLayer"]
+offset_left = 907.0
+offset_top = 525.0
+offset_right = 1003.0
+offset_bottom = 556.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Start Battle"

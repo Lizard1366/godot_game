@@ -36,7 +36,7 @@ var weapon_timers: Array = []
 
 
 func _ready() -> void:
-	name_label.text = "Denial"
+	name_label.text = "Enemy"
 	health_bar.min_value = 0
 	health_bar.max_value = max_health
 	update_health_display()
