@@ -2,6 +2,7 @@ extends Node2D
 class_name MapNode
 
 signal node_clicked(node: MapNode)
+signal start_encounter(node: MapNode)
 
 @export_group("Gameplay")
 @export var encounter_id: String = "enemy"
@@ -34,13 +35,34 @@ var node_index: int = -1
 func _ready() -> void:
 	# Ensure the sprite starts at the correct 'normal' scale
 	sprite.scale = scale_normal
+	if start_button.has_signal("pressed"):
+		start_button.pressed.connect(_on_map_node_action_pressed)
+	set_start_button_active(false)
+	
 	update_visuals()
 
 func _on_map_node_pressed() -> void:
 	emit_signal("node_clicked", self)
+
+func _on_map_node_action_pressed() -> void:
+	emit_signal("start_encounter", self)
+
+func show_info() -> void:
 	node_info.visible = true
 	highlight(true)
+	
+func hide_info() -> void:
+	node_info.visible = false
+	highlight(false)
+	set_start_button_active(false)
 
+func set_start_button_active(active: bool) -> void:
+	if "disabled" in start_button:
+		start_button.disabled = not active
+	else:
+		start_button.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
+		start_button.modulate = Color.WHITE if active else Color.DIM_GRAY
+		
 func confirm_visited():
 	is_visited = true
 	is_current_location = true
@@ -67,12 +89,3 @@ func update_visuals() -> void:
 		button.modulate = color_available
 	else:
 		button.modulate = color_default
-	#print("update Visuals " + str(neighbors))
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not node_info.visible:
-		return
-	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
-		if not node_info.get_global_rect().has_point(event.global_position):
-			node_info.visible = false
-			highlight(false)

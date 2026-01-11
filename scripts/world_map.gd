@@ -25,6 +25,7 @@ signal encounter_started(encounter_id: String, node_index: int)
 
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
+var active_node: MapNode = null
 
 @onready var camera: Camera2D = $Camera2D
 
@@ -179,11 +180,12 @@ func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 			
 	add_child(node_instance)
 	node_instance.node_clicked.connect(_on_node_clicked)
+	node_instance.start_encounter.connect(_on_node_encounter_chosen)
 	
 	all_nodes.append(node_instance)
 	node_instance.node_index = all_nodes.size()
 	node_instance.button.text = str(all_nodes.size())
-	
+	#TODO add description, to node_info
 	node_instance.node_title.text = node_instance.encounter_id
 	return node_instance
 	
@@ -207,11 +209,13 @@ func _draw():
 				drawn_pairs[pair_key] = true
 
 func _on_node_clicked(target_node: MapNode) -> void:
-	if target_node == current_node:
-		return
+	if active_node and active_node != target_node:
+		active_node.hide_info()
+		
+	active_node = target_node
+	active_node.show_info()
 	
 	var can_travel = false
-	
 	if target_node in current_node.neighbors:
 		can_travel = true
 	else:
@@ -219,10 +223,11 @@ func _on_node_clicked(target_node: MapNode) -> void:
 			if neighbor.node_index in GameData.visited_node_indicies:
 				can_travel = true
 				break
-	if not can_travel:
+	active_node.set_start_button_active(can_travel)
+	#if not can_travel:
 		#TODO Display message to user?
-		return
-		
+	#	return
+	
 	#target_node.node_info.visible = true
 	
 	#current_node.is_current_location = false
@@ -243,6 +248,27 @@ func _on_node_clicked(target_node: MapNode) -> void:
 		#trigger_encounter(current_node)
 		
 	#queue_redraw()
+func _on_node_encounter_chosen(node: MapNode) -> void:
+	if active_node:
+		active_node.hide_info()
+		active_node = null
+	
+	if current_node: 
+		current_node.is_current_location = false
+		current_node.update_visuals()
+	current_node = node
+	current_node.confirm_visited()
+	
+	mark_available_nodes(current_node)
+	trigger_encounter(node)
+	
+func _unhandled_input(event: InputEvent) -> void:
+	if active_node and event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+		if active_node.node_info.visible:
+			var info_rect = active_node.node_info.get_global_rect()
+			if not info_rect.has_point(event.global_position):
+				active_node.hide_info()
+				active_node = null
 
 func trigger_encounter(node: MapNode):
 	emit_signal("encounter_started", node.encounter_id, node.node_index)
