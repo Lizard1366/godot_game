@@ -61,7 +61,8 @@ func _on_battle_completed(victory: bool):
 	if battle_ui_layer:
 		battle_ui_layer.queue_free()
 		battle_ui_layer = null
-		
+	
+	map_instance.camera.position = map_instance.current_node.position
 	map_instance.visible = true
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
 	

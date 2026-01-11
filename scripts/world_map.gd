@@ -26,6 +26,8 @@ signal encounter_started(encounter_id: String, node_index: int)
 var current_node: MapNode
 var all_nodes: Array[MapNode] = []
 
+@onready var camera: Camera2D = $Camera2D
+
 func _ready() -> void:
 	if GameData.map_seed == 0 or GameData.map_seed == null:
 		randomize()
@@ -33,40 +35,26 @@ func _ready() -> void:
 		
 	seed(GameData.map_seed)
 	if node_scene:
-		generate_map()
-	restore_map_state()
+		generate_map_nodes()
+	generate_map()
 
-func generate_map() -> void:
+func generate_map_nodes() -> void:
 	for n in all_nodes:
 		n.queue_free()
 	all_nodes.clear()
 	
 	#center node
 	var center_node = create_node(Vector2.ZERO)
-	center_node.is_current_location = true
-	center_node.is_visited = true
-	center_node.update_visuals()
-	current_node = center_node
-	
-	if center_node.node_index not in GameData.completed_node_indicies:
-		GameData.completed_node_indicies.append(center_node.node_index)
 	
 	var initial_branches = randi_range(3, 5)
 	for i in range(initial_branches):
 		var angle = (TAU / initial_branches) * i
 		var start_dir = Vector2.RIGHT.rotated(angle)
 		grow_organic_branch(center_node, start_dir, 0)
-	
-	mark_available_nodes(center_node)
-	#for neighbor in center_node.neighbors:
-	#	if neighbor.node_index not in GameData.visited_node_indicies:
-	#		neighbor.is_available_node = true
-	#		neighbor.update_visuals()
-	#		neighbor.confirm_valid()
-			
-	queue_redraw()
 
-func restore_map_state() ->void:
+func generate_map() ->void:
+	var is_fresh_run = GameData.visited_node_indicies.is_empty()
+	
 	for i in range(all_nodes.size()):
 		var node = all_nodes[i]
 		node.node_index = i
@@ -75,82 +63,73 @@ func restore_map_state() ->void:
 		node.is_current_location = false
 		node.is_available_node = false
 		
-		if i in GameData.visited_node_indicies:
-			node.is_visited = true
-		
-		if GameData.visited_node_indicies.size() > 0:
+		if not is_fresh_run:
+			if i in GameData.visited_node_indicies:
+				node.is_visited = true
+				
 			if i == GameData.visited_node_indicies.back():
 				current_node = node 
 				node.is_current_location = true
+
 				mark_available_nodes(node)
 		elif i == 0:
 			current_node = node
 			node.is_current_location = true
-			mark_available_nodes(node)
+			node.is_visited = true
 			
+			if 0 not in GameData.visited_node_indicies:
+				GameData.visited_node_indicies.append(0)
+			if 0 not in GameData.completed_node_indicies:
+				GameData.completed_node_indicies.append(0)
 		node.button.text = str(node.node_index)
 		node.update_visuals()
 		
+	if current_node:
+		mark_available_nodes(current_node)
+	queue_redraw()
 	print("Restored" + str(GameData.completed_node_indicies))
 
 # Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
 	if current_depth >= max_depth:
 		return
-		
-	# Determine how many children this node will have
+
 	var child_count = 2
 	
-	# Random chance to split into a fork
 	if randf() < split_chance:
 		child_count = 2
 	
-	# Random chance to die early (unless we are very close to start)
 	if current_depth > 2 and randf() < termination_chance:
 		child_count = 0
 		
 	for i in range(child_count):
-		# Calculate a new direction based on previous direction + randomness
-		# If splitting (2 children), push them apart slightly
 		var angle_offset = randf_range(-direction_jitter, direction_jitter)
 		
 		if child_count == 2:
-			# Force forks to diverge visually
 			angle_offset += 0.5 if i == 0 else -0.5
 			
 		var new_dir = direction.rotated(angle_offset).normalized()
 		var candidate_pos = parent.position + (new_dir * path_length)
 		
-		# Collision Check: Try to find a valid spot
-		# If the candidate spot is too crowded, we try to rotate it a bit to fit
 		var valid_pos = find_valid_position(candidate_pos, parent.position)
 		
 		if valid_pos != Vector2.INF:
 			var child = create_node(valid_pos)
 
-			# Logic Link (Parent-Child)
 			connect_nodes(parent, child)
 			
-			# Visual Logic: Add nearby links (The PoE Web Effect)
-			# Look for existing nodes that are close but not our direct parent
 			link_nearby_neighbors(child, parent)
 			
-			# Continue the path
 			grow_organic_branch(child, new_dir, current_depth + 1)
 
-# Tries to find a valid spot near the target. Returns Vector2.INF if failed.
 func find_valid_position(target: Vector2, origin: Vector2) -> Vector2:
-	# If the perfect spot works, take it
 	if is_position_free(target):
 		return target
-		
-	# If not, try rotating the vector around the origin slightly to find a gap
+
 	var base_vec = target - origin
-	var length = base_vec.length()
 	var attempts = 8
 	var angle_step = PI / 4.0 # 45 degrees
 	
-	# Alternate checking left and right
 	for i in range(1, attempts):
 		var check_angle = angle_step * ceil(float(i)/2.0)
 		if i % 2 != 0: check_angle *= -1 # Flip side
@@ -163,14 +142,12 @@ func find_valid_position(target: Vector2, origin: Vector2) -> Vector2:
 			
 	return Vector2.INF
 
-# Checks if a position is far enough away from ALL other existing nodes
 func is_position_free(pos: Vector2) -> bool:
 	for node in all_nodes:
 		if pos.distance_to(node.position) < min_node_dist:
 			return false
 	return true
 
-# Looks for nodes within range to create cross-connections (loops)
 func link_nearby_neighbors(node: MapNode, parent_exception: MapNode) -> void:
 	var connections_made = 0
 	
@@ -179,15 +156,12 @@ func link_nearby_neighbors(node: MapNode, parent_exception: MapNode) -> void:
 			continue
 			
 		var dist = node.position.distance_to(other.position)
-		
-		# If close enough, connect
+
 		if dist < neighbor_connect_range:
-			# Visual check: Don't cross lines if possible? 
-			# For now, simple distance check works well for "Webs"
+
 			connect_nodes(node, other)
 			connections_made += 1
-			
-			# Limit extra connections so it doesn't become a complete mess
+
 			if connections_made >= 2:
 				break
 
@@ -209,6 +183,8 @@ func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 	all_nodes.append(node_instance)
 	node_instance.node_index = all_nodes.size()
 	node_instance.button.text = str(all_nodes.size())
+	
+	node_instance.node_title.text = node_instance.encounter_id
 	return node_instance
 	
 func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
@@ -218,13 +194,10 @@ func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
 		node_b.neighbors.append(node_a)
 
 func _draw():
-	# Draw lines between all connected neighbors
-	# To avoid drawing lines twice, we can use a simpler approach or a set
 	var drawn_pairs = {} 
 	
 	for node in all_nodes:
 		for neighbor in node.neighbors:
-			# Create a unique ID for the pair to prevent double drawing
 			var id1 = node.get_instance_id()
 			var id2 = neighbor.get_instance_id()
 			var pair_key = str(min(id1, id2)) + "-" + str(max(id1, id2))
@@ -238,7 +211,7 @@ func _on_node_clicked(target_node: MapNode) -> void:
 		return
 	
 	var can_travel = false
-		
+	
 	if target_node in current_node.neighbors:
 		can_travel = true
 	else:
@@ -249,23 +222,27 @@ func _on_node_clicked(target_node: MapNode) -> void:
 	if not can_travel:
 		#TODO Display message to user?
 		return
-	
-	current_node.is_current_location = false
-	current_node.update_visuals()
-	
-	current_node = target_node
-	current_node.confirm_visited()
-	
-	if target_node.node_index not in GameData.visited_node_indicies:
-		GameData.visited_node_indicies.append(target_node.node_index)
-	
-	if current_node.node_index in GameData.completed_node_indicies:
-		print("node already cleared.")
-		mark_available_nodes(current_node)
-	else:
-		trigger_encounter(current_node)
 		
-	queue_redraw()
+	#target_node.node_info.visible = true
+	
+	#current_node.is_current_location = false
+	#current_node.update_visuals()
+	
+	#current_node = target_node
+	#current_node.confirm_visited()
+	
+	
+	#if target_node.node_index not in GameData.visited_node_indicies:
+	#	GameData.visited_node_indicies.append(target_node.node_index)
+	
+	#if current_node.node_index in GameData.completed_node_indicies:
+	#	print("node already cleared.")
+	#	mark_available_nodes(current_node)
+	#else:
+	#	print('trigger encounter')
+		#trigger_encounter(current_node)
+		
+	#queue_redraw()
 
 func trigger_encounter(node: MapNode):
 	emit_signal("encounter_started", node.encounter_id, node.node_index)

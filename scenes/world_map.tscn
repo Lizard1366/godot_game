@@ -8,9 +8,13 @@
 script = ExtResource("1_oru6e")
 node_scene = ExtResource("2_qqero")
 line_width = 2.0
+branch_color = Color(0.47397572, 0.47397578, 0.4739756, 1)
+max_depth = 20
+min_node_dist = 400.0
+path_length = 600.0
+neighbor_connect_range = 900.0
+termination_chance = 0.2
+encounter_types = Array[String](["enemy", "enemy", "enemy", "elite", "treasure", "event", "boss"])
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position_smoothing_enabled = true
-drag_horizontal_enabled = true
-drag_vertical_enabled = true
 script = ExtResource("3_u82pb")

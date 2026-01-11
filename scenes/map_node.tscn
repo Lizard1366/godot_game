@@ -51,4 +51,31 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(0.17283246, 0.17283279, 0.17283249, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_hs614")
 
+[node name="NodeInfo" type="Panel" parent="."]
+visible = false
+offset_right = 146.0
+offset_bottom = 113.0
+
+[node name="NodeInfoContent" type="VBoxContainer" parent="NodeInfo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NodeTitle" type="Label" parent="NodeInfo/NodeInfoContent"]
+layout_mode = 2
+size_flags_vertical = 6
+
+[node name="NodeDescription" type="Label" parent="NodeInfo/NodeInfoContent"]
+layout_mode = 2
+size_flags_vertical = 6
+
+[node name="StartEncounter" type="Button" parent="NodeInfo/NodeInfoContent"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 14
+text = "start"
+
 [connection signal="pressed" from="Button" to="." method="_on_map_node_pressed"]

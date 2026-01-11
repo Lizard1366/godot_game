@@ -21,10 +21,15 @@ var is_current_location: bool = false
 var is_visited: bool = false
 var is_available_node: bool = false
 var neighbors: Array[MapNode] = []
-var node_index: int = 0
+var node_index: int = -1
 
 @onready var sprite = $Sprite2D
 @onready var button = $Button
+
+@onready var node_info: Control = $NodeInfo
+@onready var node_title: Control = $NodeInfo/NodeInfoContent/NodeTitle
+@onready var node_description: Control = $NodeInfo/NodeInfoContent/NodeDescription
+@onready var start_button: Control = $NodeInfo/NodeInfoContent/StartEncounter
 
 func _ready() -> void:
 	# Ensure the sprite starts at the correct 'normal' scale
@@ -33,6 +38,8 @@ func _ready() -> void:
 
 func _on_map_node_pressed() -> void:
 	emit_signal("node_clicked", self)
+	node_info.visible = true
+	highlight(true)
 
 func confirm_visited():
 	is_visited = true
@@ -43,7 +50,6 @@ func confirm_visited():
 func confirm_valid():
 	is_available_node = true
 	is_current_location = false
-	print('valid')
 	GameData.register_valid(node_index)
 	update_visuals()
 
@@ -62,3 +68,11 @@ func update_visuals() -> void:
 	else:
 		button.modulate = color_default
 	#print("update Visuals " + str(neighbors))
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not node_info.visible:
+		return
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT:
+		if not node_info.get_global_rect().has_point(event.global_position):
+			node_info.visible = false
+			highlight(false)
