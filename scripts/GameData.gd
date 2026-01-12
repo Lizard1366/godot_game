@@ -16,18 +16,15 @@ func _ready() -> void:
 	randomize()
 	map_seed = randi()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
 func register_visit(node_index: int):
 	if not node_index in visited_node_indicies:
 		visited_node_indicies.append(node_index)
 
 func register_valid(node_index: int):
+	print("GameData: ", node_index);
 	if not node_index in valid_node_indicies:
 		valid_node_indicies.append(node_index)
-	else:
+	elif node_index in completed_node_indicies:
 		valid_node_indicies.erase(node_index)
 		
 func register_completed_node():

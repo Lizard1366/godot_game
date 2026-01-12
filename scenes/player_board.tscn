@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://dwo0w247dhvi6"]
 
-[ext_resource type="Script" path="res://scripts/PlayerBoard.gd" id="1_70fcx"]
-[ext_resource type="Script" path="res://scripts/Item.gd" id="2_aygk8"]
+[ext_resource type="Script" uid="uid://kjchgfma6tsx" path="res://scripts/PlayerBoard.gd" id="1_70fcx"]
+[ext_resource type="Script" uid="uid://de8stdvc07m32" path="res://scripts/Item.gd" id="2_aygk8"]
 [ext_resource type="Texture2D" uid="uid://un6gb7ywmbiu" path="res://assets/Frames/Frame_1.png" id="2_j2lwb"]
 [ext_resource type="Texture2D" uid="uid://bdegiwmxynxjg" path="res://assets/Hit_Points/HP_Empty.png" id="3_8dlcs"]
 [ext_resource type="Resource" uid="uid://f0u7lb7etfg4" path="res://items/basic_sword.tres" id="3_5757y"]
@@ -10,8 +10,8 @@
 
 [node name="Player_Board" type="PanelContainer"]
 layout_direction = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = -1
+anchor_top = 0.90833336
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -320.0

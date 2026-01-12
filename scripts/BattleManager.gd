@@ -121,9 +121,7 @@ func _on_enemy_defeated() -> void:
 	update_node_status(true)
 
 func update_node_status(complete: bool):
-	print(GameData.map_seed)
-	
 	if(complete):
 		GameData.completed_node_indicies.append(GameData.combat_node)
+		
 	emit_signal("battle_completed", complete)
-	#get_tree().change_scene_to_file("res://scenes/world_map.tscn")

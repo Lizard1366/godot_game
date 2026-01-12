@@ -67,7 +67,7 @@ func _on_battle_completed(victory: bool):
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
 	
 	if victory:
-		map_instance.mark_available_nodes(map_instance.current_node)
+		map_instance.mark_available_nodes(map_instance.current_node, true)
 		map_instance.queue_redraw()
 	else:
 		print("end")

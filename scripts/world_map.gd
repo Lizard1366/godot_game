@@ -176,6 +176,7 @@ func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 		node_instance.scale_active = Vector2(3.2, 3.2)
 		node_instance.color_default = boss_node_color
 	else:
+		#TODO WEIGHT THE ENCOUNTER TYPES TO SELECT EASY AROUND START AND HARDER AS YOU GO!
 		node_instance.encounter_id = encounter_types.pick_random()
 			
 	add_child(node_instance)
@@ -187,6 +188,7 @@ func create_node(pos: Vector2, is_boss: bool = false ) -> MapNode:
 	node_instance.button.text = str(all_nodes.size())
 	#TODO add description, to node_info
 	node_instance.node_title.text = node_instance.encounter_id
+	node_instance.node_description.text = str(Vector2.ZERO.distance_to(pos))
 	return node_instance
 	
 func connect_nodes(node_a: MapNode, node_b: MapNode) -> void:
@@ -216,38 +218,10 @@ func _on_node_clicked(target_node: MapNode) -> void:
 	active_node.show_info()
 	
 	var can_travel = false
-	if target_node in current_node.neighbors:
+	if target_node.node_index in GameData.valid_node_indicies:
 		can_travel = true
-	else:
-		for neighbor in target_node.neighbors:
-			if neighbor.node_index in GameData.visited_node_indicies:
-				can_travel = true
-				break
 	active_node.set_start_button_active(can_travel)
-	#if not can_travel:
-		#TODO Display message to user?
-	#	return
 	
-	#target_node.node_info.visible = true
-	
-	#current_node.is_current_location = false
-	#current_node.update_visuals()
-	
-	#current_node = target_node
-	#current_node.confirm_visited()
-	
-	
-	#if target_node.node_index not in GameData.visited_node_indicies:
-	#	GameData.visited_node_indicies.append(target_node.node_index)
-	
-	#if current_node.node_index in GameData.completed_node_indicies:
-	#	print("node already cleared.")
-	#	mark_available_nodes(current_node)
-	#else:
-	#	print('trigger encounter')
-		#trigger_encounter(current_node)
-		
-	#queue_redraw()
 func _on_node_encounter_chosen(node: MapNode) -> void:
 	if active_node:
 		active_node.hide_info()
@@ -258,8 +232,6 @@ func _on_node_encounter_chosen(node: MapNode) -> void:
 		current_node.update_visuals()
 	current_node = node
 	current_node.confirm_visited()
-	
-	mark_available_nodes(current_node)
 	trigger_encounter(node)
 	
 func _unhandled_input(event: InputEvent) -> void:
@@ -273,11 +245,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func trigger_encounter(node: MapNode):
 	emit_signal("encounter_started", node.encounter_id, node.node_index)
 
-func mark_available_nodes(center: MapNode):
-	for neighbor in center.neighbors:
+func mark_available_nodes(node: MapNode, victory: bool = false):
+	for neighbor in node.neighbors:
 		if neighbor.node_index not in GameData.visited_node_indicies:
 			neighbor.is_available_node = true
 			neighbor.update_visuals()
 			neighbor.confirm_valid()
+	if victory:
+		node.confirm_valid()
+		node.confirm_visited()
+		
 	queue_redraw()
-	print(GameData.valid_node_indicies)
+	print("World Map: Completed - ", GameData.valid_node_indicies, GameData.completed_node_indicies)
