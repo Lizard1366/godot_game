@@ -89,15 +89,24 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
 
-[node name="Button" type="Button" parent="VBoxContainer"]
+[node name="load_game" type="Button" parent="VBoxContainer"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_vue75")
-text = "Start Game"
+text = "Load Game"
 
-[node name="Button2" type="Button" parent="VBoxContainer"]
+[node name="new_game" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_vue75")
+text = "New Game"
+
+[node name="quit_game" type="Button" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -105,5 +114,6 @@ theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_vue75")
 text = "Quit Game"
 
-[connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_button_start_pressed"]
-[connection signal="pressed" from="VBoxContainer/Button2" to="." method="_on_button_quit_pressed"]
+[connection signal="pressed" from="VBoxContainer/load_game" to="." method="_on_load_game_pressed"]
+[connection signal="pressed" from="VBoxContainer/new_game" to="." method="_on_button_start_pressed"]
+[connection signal="pressed" from="VBoxContainer/quit_game" to="." method="_on_button_quit_pressed"]

@@ -123,5 +123,4 @@ func _on_enemy_defeated() -> void:
 func update_node_status(complete: bool):
 	if(complete):
 		GameData.completed_node_indicies.append(GameData.combat_node)
-		
 	emit_signal("battle_completed", complete)

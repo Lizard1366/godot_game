@@ -65,9 +65,10 @@ func _on_battle_completed(victory: bool):
 	map_instance.camera.position = map_instance.current_node.position
 	map_instance.visible = true
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
-	
+	GameData.do_save()
 	if victory:
 		map_instance.mark_available_nodes(map_instance.current_node, true)
 		map_instance.queue_redraw()
 	else:
 		print("end")
+		
