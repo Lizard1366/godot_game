@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://dbyapdskpl2w7"]
+
+[node name="battle_enemy" type="TextureButton"]
+offset_right = 40.0
+offset_bottom = 40.0

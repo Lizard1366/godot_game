@@ -1,0 +1,111 @@
+[gd_scene load_steps=6 format=3 uid="uid://ceakbx3d7iuji"]
+
+[ext_resource type="Texture2D" uid="uid://jod8c1r8gcpx" path="res://assets/Background/battle_map.png" id="1_y2ly8"]
+[ext_resource type="PackedScene" uid="uid://jxw4idb41btp" path="res://scenes/side_board.tscn" id="2_ujkk0"]
+[ext_resource type="PackedScene" uid="uid://021gloopacho" path="res://scenes/battle_player.tscn" id="3_5utsm"]
+[ext_resource type="PackedScene" uid="uid://dbyapdskpl2w7" path="res://scenes/battle_enemy.tscn" id="4_hpw63"]
+[ext_resource type="Texture2D" uid="uid://dysh3xvp150ir" path="res://assets/Monsters/Goblin.png" id="5_umtsg"]
+
+[node name="battle_map" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_y2ly8")
+
+[node name="Start_Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -111.0
+offset_top = -86.0
+offset_right = 111.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 40
+text = "Start"
+
+[node name="Enemy_Side" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 365.0
+grow_vertical = 2
+
+[node name="side_board" parent="Enemy_Side" instance=ExtResource("2_ujkk0")]
+layout_mode = 2
+
+[node name="Player_side" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.81000006
+anchor_top = 0.039
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -0.20007324
+offset_top = -42.120003
+grow_horizontal = 0
+grow_vertical = 2
+alignment = 1
+
+[node name="side_board" parent="Player_side" instance=ExtResource("2_ujkk0")]
+layout_mode = 2
+
+[node name="Player_buttons" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 995.0
+offset_top = 63.0
+offset_right = 1354.0
+offset_bottom = 938.0
+
+[node name="battle_player" parent="Player_buttons" instance=ExtResource("3_5utsm")]
+layout_mode = 0
+
+[node name="battle_player2" parent="Player_buttons" instance=ExtResource("3_5utsm")]
+layout_mode = 0
+offset_left = 174.0
+offset_top = 407.0
+offset_right = 276.0
+offset_bottom = 508.0
+
+[node name="battle_player3" parent="Player_buttons" instance=ExtResource("3_5utsm")]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 539.0
+offset_right = 150.0
+offset_bottom = 640.0
+
+[node name="battle_player4" parent="Player_buttons" instance=ExtResource("3_5utsm")]
+layout_mode = 0
+offset_left = 151.0
+offset_top = 670.0
+offset_right = 253.0
+offset_bottom = 771.0
+
+[node name="Enemy_buttons" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 549.0
+offset_top = 243.0
+offset_right = 881.0
+offset_bottom = 979.0
+
+[node name="battle_enemy" parent="Enemy_buttons" instance=ExtResource("4_hpw63")]
+layout_mode = 0
+offset_left = 126.0
+offset_top = 77.0
+offset_right = 214.0
+offset_bottom = 171.0
+texture_normal = ExtResource("5_umtsg")
