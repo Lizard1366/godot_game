@@ -35,6 +35,8 @@ func _ready() -> void:
 		GameData.map_seed = randi()
 		
 	seed(GameData.map_seed)
+	print("World MAP: ", GameData.map_seed)
+	
 	if node_scene:
 		generate_map_nodes()
 	generate_map()
@@ -55,7 +57,7 @@ func generate_map_nodes() -> void:
 
 func generate_map() ->void:
 	var is_fresh_run = GameData.visited_node_indicies.is_empty()
-	
+	print("WORLD MAP: ", GameData.visited_node_indicies)
 	for i in range(all_nodes.size()):
 		var node = all_nodes[i]
 		node.node_index = i
@@ -88,15 +90,12 @@ func generate_map() ->void:
 	if current_node:
 		mark_available_nodes(current_node)
 	queue_redraw()
-	print("Restored" + str(GameData.completed_node_indicies))
 
 # Recursively walk paths outward
 func grow_organic_branch(parent: MapNode, direction: Vector2, current_depth: int) -> void:
 	if current_depth >= max_depth:
 		return
-
 	var child_count = 2
-	
 	if randf() < split_chance:
 		child_count = 2
 	

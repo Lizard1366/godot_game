@@ -20,9 +20,7 @@ func load_map() -> void:
 	map_instance.visible = true
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
 
-func _on_map_encounter_started(encounter_id: String, node_index: int) -> void:
-	print("Controller: Map requested encounter ", encounter_id)
-	
+func _on_map_encounter_started(encounter_id: String, node_index: int) -> void:	
 	GameData.encounter_type = encounter_id
 	GameData.combat_node = node_index
 	
@@ -54,7 +52,6 @@ func start_battle():
 			push_error("Could not find BattleManager signal! Is the script attached?")
 
 func _on_battle_completed(victory: bool):
-	print("Controller: Battle finished: Victory: ", victory)
 	
 	if current_battle_instance:
 		current_battle_instance.queue_free()
@@ -65,7 +62,7 @@ func _on_battle_completed(victory: bool):
 	map_instance.camera.position = map_instance.current_node.position
 	map_instance.visible = true
 	map_instance.process_mode = Node.PROCESS_MODE_INHERIT
-	GameData.do_save()
+	SaveManager.do_save()
 	if victory:
 		map_instance.mark_available_nodes(map_instance.current_node, true)
 		map_instance.queue_redraw()

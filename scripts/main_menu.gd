@@ -17,7 +17,7 @@ func load_game():
 			
 
 func _on_button_start_pressed() -> void:
-	GameData.reset_game()
+	SaveManager.reset_game()
 	get_tree().change_scene_to_file("res://scenes/game_controller.tscn")
 
 func _on_button_quit_pressed() -> void:
@@ -25,5 +25,6 @@ func _on_button_quit_pressed() -> void:
 
 
 func _on_load_game_pressed() -> void:
-	GameData.load_game()
+	SaveManager.load_game()
+	
 	get_tree().change_scene_to_file("res://scenes/game_controller.tscn")

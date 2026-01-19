@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.5")
 [autoload]
 
 GameData="*res://scripts/GameData.gd"
+SaveManager="*res://scripts/SaveManager.gd"
 
 [display]
 

@@ -18,7 +18,7 @@ func _on_continue_pressed() -> void:
 	get_tree().paused = false
 
 func _on_main_menu_pressed() -> void:
-	GameData.do_save()
+	SaveManager.do_save()
 	visible = false
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
