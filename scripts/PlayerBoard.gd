@@ -47,29 +47,24 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not is_battling: return
 	
-	# Loop through each item by index.
 	for i in range(items.size()):
 		var item = items[i]
 		
-		if item: # Make sure item exists
+		if item:
 			weapon_timers[i] += delta
 			if weapon_timers[i] >= item.attack_speed:
 				weapon_timers[i] = 0.0
 				var damage = strength + item.damage_bonus
-				#print("Player attacks with %s for %d damage!" % [item.item_name, damage])
 				if opponent:
 					opponent.take_damage(damage)
 
 # --- Public Functions for Inventory Management ---
-
 func remove_item(item_data: Dictionary) -> void:
 	var item_to_remove = item_data.get("item")
-	# Find the index of the item to remove.
 	var index = items.find(item_to_remove)
 	if index != -1:
 		items.remove_at(index)
 		item_positions.remove_at(index)
-		# After changing data, we must re-setup the visuals and timers.
 		_setup_visual_inventory()
 		_setup_weapon_timers()
 

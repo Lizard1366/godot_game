@@ -35,8 +35,7 @@ func _ready() -> void:
 		GameData.map_seed = randi()
 		
 	seed(GameData.map_seed)
-	print("World MAP: ", GameData.map_seed)
-	
+
 	if node_scene:
 		generate_map_nodes()
 	generate_map()
@@ -57,38 +56,31 @@ func generate_map_nodes() -> void:
 
 func generate_map() ->void:
 	var is_fresh_run = GameData.visited_node_indicies.is_empty()
-	print("WORLD MAP: ", GameData.visited_node_indicies)
 	for i in range(all_nodes.size()):
 		var node = all_nodes[i]
 		node.node_index = i
-		
 		node.is_visited = false
 		node.is_current_location = false
 		node.is_available_node = false
-		
+
 		if not is_fresh_run:
 			if i in GameData.visited_node_indicies:
 				node.is_visited = true
-				
+
 			if i == GameData.visited_node_indicies.back():
 				current_node = node 
-				node.is_current_location = true
-
-				mark_available_nodes(node)
+				node.confirm_visited()
+				
+			if i in GameData.valid_node_indicies:
+				node.is_available_node = true
+				node.update_visuals()
 		elif i == 0:
 			current_node = node
 			node.is_current_location = true
-			node.is_visited = true
-			
-			if 0 not in GameData.visited_node_indicies:
-				GameData.visited_node_indicies.append(0)
-			if 0 not in GameData.completed_node_indicies:
-				GameData.completed_node_indicies.append(0)
+			node.confirm_visited()
 		node.button.text = str(node.node_index)
 		node.update_visuals()
-		
-	if current_node:
-		mark_available_nodes(current_node)
+
 	queue_redraw()
 
 # Recursively walk paths outward
@@ -246,6 +238,7 @@ func trigger_encounter(node: MapNode):
 
 func mark_available_nodes(node: MapNode, victory: bool = false):
 	for neighbor in node.neighbors:
+		print(node.node_index, " -> NEIGHBOR INDEX: ", neighbor.node_index)
 		if neighbor.node_index not in GameData.visited_node_indicies:
 			neighbor.is_available_node = true
 			neighbor.update_visuals()
@@ -253,6 +246,4 @@ func mark_available_nodes(node: MapNode, victory: bool = false):
 	if victory:
 		node.confirm_valid()
 		node.confirm_visited()
-		
 	queue_redraw()
-	print("World Map: Completed - ", GameData.valid_node_indicies, GameData.completed_node_indicies)

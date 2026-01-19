@@ -34,16 +34,14 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
 		var grid_pos = (get_local_mouse_position() / Vector2(cell_size)).floor()
 		
-		# Find which item was clicked on.
 		for entry in inventory_data:
 			var item = entry.get("item")
 			var pos = entry.get("position")
 			var item_rect = Rect2(pos, item.size)
 			
 			if item_rect.has_point(grid_pos):
-				# Found the item, tell the manager.
 				emit_signal("item_drag_started", entry, self)
-				break # Stop searching
+				break
 
 # --- Public Functions ---
 
@@ -54,7 +52,6 @@ func load_inventory_data(data: Array) -> void:
 # --- Internal Functions ---
 
 func _redraw_inventory() -> void:
-	# The children are now the Control node containers, so we check for that.
 	for child in get_children():
 		if child is Control:
 			child.queue_free()
